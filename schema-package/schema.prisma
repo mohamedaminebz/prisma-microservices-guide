@@ -1,0 +1,41 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// The single source of truth for the shared database schema.
+//
+// Every microservice installs `@myorg/db-schema` and uses THIS schema. No
+// other repository may contain its own copy of `schema.prisma` or its own
+// migration files — that is exactly what causes drift.
+// ─────────────────────────────────────────────────────────────────────────────
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+/// An item owned by the shared schema. Used by every service in the demo.
+model Item {
+  id        String   @id @default(uuid())
+  name      String
+  quantity  Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tags Tag[]
+
+  @@map("items")
+}
+
+/// A tag attached to an item. Added in migration `20240102000000_add_tag`.
+model Tag {
+  id     String @id @default(uuid())
+  name   String
+  itemId String
+
+  item Item @relation(fields: [itemId], references: [id], onDelete: Cascade)
+
+  @@unique([itemId, name])
+  @@map("tags")
+}

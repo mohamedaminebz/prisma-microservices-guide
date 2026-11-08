@@ -1,0 +1,49 @@
+name: services
+
+# Microservices consume @myorg/db-schema but NEVER run migrations. This
+# pipeline builds each service (which runs `prisma generate` + build) and then
+# guards that no service ever sneaks a `migrate` script into its package.json.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'service-*/**'
+  pull_request:
+    paths:
+      - 'service-*/**'
+
+jobs:
+  build:
+    name: Build ${{ matrix.service }}
+    strategy:
+      fail-fast: false
+      matrix:
+        service: [service-a, service-b, service-c]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      # The service depends on the built schema package (file: link in this
+      # demo; in production it is installed from the private npm registry).
+      - name: Build schema package
+        working-directory: schema-package
+        run: npm ci && npm run build
+
+      - name: Install and build service (generate + build, NO migrate)
+        working-directory: ${{ matrix.service }}
+        env:
+          # generate doesn't connect, but the env var keeps the schema valid.
+          DATABASE_URL: postgresql://postgres:postgres@localhost:5432/app
+        run: npm ci && npm run build
+
+      - name: Guard — services must never run migrations
+        run: |
+          if grep -q '"migrate' "${{ matrix.service }}/package.json"; then
+            echo "::error file=${{ matrix.service }}/package.json::services must not run migrations; only the schema-package does"
+            exit 1
+          fi
+          echo "OK — no migrate scripts in ${{ matrix.service }}/package.json"

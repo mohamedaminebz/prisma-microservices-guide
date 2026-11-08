@@ -1,0 +1,29 @@
+{
+  "name": "service-c",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Demo microservice that consumes the shared @myorg/db-schema package. Never runs migrations.",
+  "main": "dist/index.js",
+  "scripts": {
+    "generate": "prisma generate --schema=./node_modules/@myorg/db-schema/schema.prisma",
+    "build": "npm run generate && tsc -p tsconfig.json",
+    "prod": "npm run build && node dist/index.js",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts"
+  },
+  "dependencies": {
+    "@myorg/db-schema": "file:../schema-package",
+    "@prisma/client": "^5.22.0",
+    "express": "^4.19.2"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.21",
+    "@types/node": "^20.14.0",
+    "prisma": "^5.22.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.5.4"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

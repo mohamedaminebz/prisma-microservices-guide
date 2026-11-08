@@ -1,0 +1,55 @@
+name: schema-package
+
+# The schema package is the single source of truth AND the single migration
+# authority. This pipeline gates every schema change and then (on main) applies
+# it to the production database. No other pipeline runs migrations.
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'schema-package/**'
+  pull_request:
+    paths:
+      - 'schema-package/**'
+
+jobs:
+  safety-check:
+    name: Migration safety gate
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: schema-package
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install dependencies (lockfile committed)
+        run: npm ci
+      - name: Fail on destructive migrations without a plan
+        run: npm run check:safety:strict
+      - name: Self-test the safety gate
+        run: npm run test:safety
+
+  migrate-production:
+    name: Apply migrations to production
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    needs: safety-check
+    runs-on: ubuntu-latest
+    environment: production
+    defaults:
+      run:
+        working-directory: schema-package
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Install dependencies (lockfile committed)
+        run: npm ci
+      # THE only place `prisma migrate deploy` runs against prod.
+      - name: prisma migrate deploy
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: npm run migrate:deploy

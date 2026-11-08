@@ -1,0 +1,42 @@
+{
+  "name": "@myorg/db-schema",
+  "version": "1.4.0",
+  "description": "Single source of truth for the shared database schema: the Prisma schema, all migration files, and the exported PrismaClient.",
+  "license": "MIT",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist",
+    "schema.prisma",
+    "migrations",
+    "scripts",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "restricted"
+  },
+  "scripts": {
+    "generate": "prisma generate --schema=./schema.prisma",
+    "build": "npm run generate && tsc -p tsconfig.json",
+    "migrate:dev": "prisma migrate dev --schema=./schema.prisma",
+    "migrate:deploy": "prisma migrate deploy --schema=./schema.prisma",
+    "migrate:status": "prisma migrate status --schema=./schema.prisma",
+    "check:safety": "tsx scripts/check-migration-safety.ts --dir ./migrations",
+    "check:safety:strict": "tsx scripts/check-migration-safety.ts --dir ./migrations --strict",
+    "test:safety": "tsx scripts/verify-safety-check.ts",
+    "prepublishOnly": "npm run build && npm run check:safety:strict && npm run test:safety"
+  },
+  "peerDependencies": {
+    "@prisma/client": "^5.22.0"
+  },
+  "devDependencies": {
+    "@prisma/client": "^5.22.0",
+    "prisma": "^5.22.0",
+    "@types/node": "^20.14.0",
+    "tsx": "^4.19.0",
+    "typescript": "^5.5.4"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

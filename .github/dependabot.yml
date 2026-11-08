@@ -1,0 +1,24 @@
+# Keep dependencies moving. Each service tracks the shared @myorg/db-schema
+# package in production (see the README's "Adopting this in your team"); in this
+# demo it is a `file:` link, which Dependabot cannot bump and safely skips.
+version: 2
+updates:
+  - package-ecosystem: "npm"
+    directory: "/schema-package"
+    schedule:
+      interval: "weekly"
+
+  - package-ecosystem: "npm"
+    directory: "/service-a"
+    schedule:
+      interval: "weekly"
+
+  - package-ecosystem: "npm"
+    directory: "/service-b"
+    schedule:
+      interval: "weekly"
+
+  - package-ecosystem: "npm"
+    directory: "/service-c"
+    schedule:
+      interval: "weekly"

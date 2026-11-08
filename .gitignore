@@ -1,0 +1,15 @@
+# dependencies
+node_modules/
+.npm-cache/
+
+# build output
+dist/
+schema-package/generated/
+*.tsbuildinfo
+
+# environment
+.env
+.env.local
+
+# misc
+.DS_Store
