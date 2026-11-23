@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "@myorg/db-schema": "file:../schema-package",
-    "@prisma/client": "^5.22.0",
+    "@prisma/client": "^7.10.1",
     "express": "^4.19.2"
   },
   "devDependencies": {
